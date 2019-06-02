@@ -2,6 +2,34 @@
 
 # contributors: mel, cr0d, rck, kd, vm, ... 
 
+# --- TO DO ---
+
+# Traduzir novos fragmentos para inglês
+
+#Capturar o nome das redes wireless do arquivo temporário e passar para um array
+
+#Dar um echo neste array, mostrando o número da posição do array +1 e o nome da rede, no seguinte formato
+#2;Rede 01
+
+#Pegar o canal do array com o nº da linha (posição do array +1) com: head -n 2 redes.csv | tail -n 1
+
+# Ajustar seleção de redes wireless, ao passar 0 -> reescanear redes.
+
+
+# Tentar descobrir qual o erro que mostra o nome de algumas redes com nomes repetidos & outras com nome pela metade
+# ==== PERFUMARIAS DESNECESSÁRIAS :) ====
+# Criar um parser para as redes wireless, para mostrá-las neste formato
+#   +----+---------------+
+#   | Id | Network       |
+#   |  1 | Rede 01       |
+#   |  2 | Rede 02       |
+#   |  3 | Rede Wireless |
+#   |  4 |               |
+#   |  5 |               |
+#   |  6 |               |
+#   +----+---------------+
+
+
 usage()
 {
     echo -e "\nUsage: sudo bash ./deauth_attack.sh <args>"
@@ -24,8 +52,11 @@ do
     then
         echo "[ERROR] Missing command/app \"$CMD\". Install it first."
         echo -e "\nPackages you need to install (Debian, Ubuntu, ...): "
-        echo -e "- aircrack-ng\n- reaver\n- wireless-tools\n- ..."
-        echo -e "\nE.g.: sudo apt-get -y install aircrack-ng reaver wireless-tools"
+        echo "aircrack-ng\n- reaver\n- wireless-tools\n- ..."
+#        echo -e "\nE.g.: sudo apt-get -y install aircrack-ng reaver wireless-tools"
+        echo "Para airmon-ng, instale o pacote aircrack-ng."
+        echo "Para route, instale o pacote net-tools."
+        echo "Para wash, instale o pacote reaver."
         exit
     fi
 done
