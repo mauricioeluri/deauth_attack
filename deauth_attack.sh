@@ -4,19 +4,27 @@
 
 # --- TO DO ---
 
+#-------
 # Traduzir novos fragmentos para inglês
-
+#-------
 #Capturar o nome das redes wireless do arquivo temporário e passar para um array
 
 #Dar um echo neste array, mostrando o número da posição do array +1 e o nome da rede, no seguinte formato
-#2;Rede 01
-
+#1;Rede 01
+#2;Rede 02
+#3;Rede Wireless
+#-------
 #Pegar o canal do array com o nº da linha (posição do array +1) com: head -n 2 redes.csv | tail -n 1
-
+#-------
 # Ajustar seleção de redes wireless, ao passar 0 -> reescanear redes.
-
-
+#1;Rede 01
+#2;Rede 02
+#3;Rede Wireless
+#Pressione 0 para reescanear as redes wireless
+#-------
 # Tentar descobrir qual o erro que mostra o nome de algumas redes com nomes repetidos & outras com nome pela metade
+#-------
+
 # ==== PERFUMARIAS DESNECESSÁRIAS :) ====
 # Criar um parser para as redes wireless, para mostrá-las neste formato
 #   +----+---------------+
