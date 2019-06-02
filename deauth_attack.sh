@@ -7,6 +7,7 @@ then echo "Necessita root."
     exit
 fi
 
+mplayer -loop 0 -noconsolecontrols -really-quiet 2>/dev/null keygen.mp3 &
 
 echo "
 
