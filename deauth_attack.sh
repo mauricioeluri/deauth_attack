@@ -44,30 +44,52 @@ usage()
     echo -e "\nOptional Arguments:"
     echo "-n \"<name>\"       : The network name which the attack will be performed"
     echo "-k                : Plays a nice keygen music while the attack is running"
-#    echo "-s <y,n>          : Don't show the DeAuth messages when performing the attack [Default:n]"
+    #    echo "-s <y,n>          : Don't show the DeAuth messages when performing the attack [Default:n]"
     echo "-h                : Show this help message"
 }
 
 [ "$EUID" -eq 0 ] || { 
-    usage 
-    echo "NOTE: most of the commands need \"root\"";
-    exit;
+usage 
+echo "NOTE: most of the commands need \"root\"";
+exit;
 }
+
+to_install="sudo apt-get install "
+ERRO=0
 
 for CMD in route airmon-ng mktemp iwlist iwconfig wash getopt pkill
 do
+# TESTA SE TODAS AS DEPENDÊNCIAS ESTÃO INSTALADAS
     if [ ! `which $CMD` ]
     then
-        echo "[ERROR] Missing command/app \"$CMD\". Install it first."
-        echo -e "\nPackages you need to install (Debian, Ubuntu, ...): "
-        echo "aircrack-ng\n- reaver\n- wireless-tools\n- ..."
-#        echo -e "\nE.g.: sudo apt-get -y install aircrack-ng reaver wireless-tools"
-        echo "Para airmon-ng, instale o pacote aircrack-ng."
-        echo "Para route, instale o pacote net-tools."
-        echo "Para wash, instale o pacote reaver."
-        exit
+
+        #ALGUNS PACOTES SÃO SUBPACOTES DE PACOTES MAIORES
+        case "$CMD" in
+            "airmon-ng")
+                to_install+="aircrack-ng "
+                ;;
+            "route")
+                to_install+="net-tools "
+                ;;
+            "wash")
+                to_install+="reaver "
+                ;;
+            *)
+                to_install+=$CMD" "
+                ;;
+        esac
+        ERRO=1
     fi
 done
+
+# CASO ERRO, MONTA A STRING DE INSTALAÇÃO E MOSTRA PARA O USUÁRIO
+if [ $ERRO == 1 ]
+then
+    echo "[ERROR] Missing commands/apps. Install them first."
+    to_install+="-y"
+    echo $to_install
+    exit
+fi
 
 # find WiFi net interface
 INTERFACE=`iwconfig 2> /dev/null | grep 'IEEE 802.11' | awk '{print $1}'`
@@ -102,13 +124,13 @@ parse_iwl()
 {
     while IFS= read -r line; do
         [[ "$line" =~ \(Channel ]] && {
-            chn=${line##*nel };
-            chn=${chn:0:$((${#chn}-1))};
-        }
-        [[ "$line" =~ ESSID ]] && {
-            essid=${line##*ID:}
-            echo "$essid;$chn"
-        }
+        chn=${line##*nel };
+        chn=${chn:0:$((${#chn}-1))};
+    }
+    [[ "$line" =~ ESSID ]] && {
+    essid=${line##*ID:}
+    echo "$essid;$chn"
+}
     done
 }
 
@@ -187,8 +209,8 @@ scan_networks
 #Se a network não foi setada, não foi passada como parâmetro logo,
 #Devemos pedir para o usuário inserir a rede
 if [ -z ${NETWORK+x} ];
-    then
-        choose_network
+then
+    choose_network
 fi
 
 #Verifica se a rede inserida está no arquivo temporário
