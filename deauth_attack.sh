@@ -5,6 +5,10 @@
 # --- TO DO ---
 
 #-------
+# Testar primeiro se a placa de rede permite modo monitor
+#-------
+
+#-------
 # Traduzir novos fragmentos para inglês
 #-------
 #Capturar o nome das redes wireless do arquivo temporário e passar para um array
@@ -217,7 +221,7 @@ fi
 verify_network
 if [ $REDE_VALIDA == 0 ]
 then
-    echo "Network not found."
+    echo "[ERROR] Network not found."
     exit
 fi
 
