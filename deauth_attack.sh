@@ -1,21 +1,19 @@
 #!/bin/bash
 
-# contributors: mel, cr0d, rck, kd, vm, ... 
+# contributors: mel, cr0d, rck, kd, vm, ...
 
 # --- TO DO ---
 
 #-------
-# Criar instalador para o linux 
+# Criar instalador para o linux
 #-------
+# Modificar instalador de acordo com a distro
 #-------
 # Testar primeiro se a placa de rede permite modo monitor
 #-------
-
-#-------
 # Traduzir novos fragmentos para inglês
 #-------
-#Capturar o nome das redes wireless do arquivo temporário e passar para um array
-
+# Capturar o nome das redes wireless do arquivo temporário e passar para um array
 #Dar um echo neste array, mostrando o número da posição do array +1 e o nome da rede, no seguinte formato
 #1;Rede 01
 #2;Rede 02
@@ -50,13 +48,12 @@ usage()
     echo -e "\nUsage: sudo bash ./deauth_attack.sh <args>"
     echo -e "\nOptional Arguments:"
     echo "-n \"<name>\"       : The network name which the attack will be performed"
-    echo "-k                : Plays a nice keygen music while the attack is running"
     #    echo "-s <y,n>          : Don't show the DeAuth messages when performing the attack [Default:n]"
     echo "-h                : Show this help message"
 }
 
 [ "$EUID" -eq 0 ] || { 
-usage 
+usage
 echo "NOTE: most of the commands need \"root\"";
 exit;
 }
@@ -66,10 +63,9 @@ ERRO=0
 
 for CMD in route airmon-ng mktemp iwlist iwconfig wash getopt pkill
 do
-# TESTA SE TODAS AS DEPENDÊNCIAS ESTÃO INSTALADAS
+    # TESTA SE TODAS AS DEPENDÊNCIAS ESTÃO INSTALADAS
     if [ ! `which $CMD` ]
     then
-
         #ALGUNS PACOTES SÃO SUBPACOTES DE PACOTES MAIORES
         case "$CMD" in
             "airmon-ng")
@@ -136,9 +132,7 @@ parse_iwl()
     }
     [[ "$line" =~ ESSID ]] && {
     essid=${line##*ID:}
-    echo "$essid;$chn"
-}
-    done
+    echo "$essid;$chn"; } done
 }
 
 # find available networks
@@ -179,27 +173,27 @@ verify_network()
 
 echo "
 
-▓█████▄ ▓█████ ▄▄▄       █    ██ ▄▄▄█████▓ ██░ ██ 
+▓█████▄ ▓█████ ▄▄▄       █    ██ ▄▄▄█████▓ ██░ ██
 ▒██▀ ██▌▓█   ▀▒████▄     ██  ▓██▒▓  ██▒ ▓▒▓██░ ██▒
 ░██   █▌▒███  ▒██  ▀█▄  ▓██  ▒██░▒ ▓██░ ▒░▒██▀▀██░
-░▓█▄   ▌▒▓█  ▄░██▄▄▄▄██ ▓▓█  ░██░░ ▓██▓ ░ ░▓█ ░██ 
+░▓█▄   ▌▒▓█  ▄░██▄▄▄▄██ ▓▓█  ░██░░ ▓██▓ ░ ░▓█ ░██
 ░▒████▓ ░▒████▒▓█   ▓██▒▒▒█████▓   ▒██▒ ░ ░▓█▒░██▓
- ▒▒▓  ▒ ░░ ▒░ ░▒▒   ▓▒█░░▒▓▒ ▒ ▒   ▒ ░░    ▒ ░░▒░▒
- ░ ▒  ▒  ░ ░  ░ ▒   ▒▒ ░░░▒░ ░ ░     ░     ▒ ░▒░ ░
- ░ ░  ░    ░    ░   ▒    ░░░ ░ ░   ░       ░  ░░ ░
-   ░       ░  ░     ░  ░   ░               ░  ░  ░
-   ░                                                
+▒▒▓  ▒ ░░ ▒░ ░▒▒   ▓▒█░░▒▓▒ ▒ ▒   ▒ ░░    ▒ ░░▒░▒
+░ ▒  ▒  ░ ░  ░ ▒   ▒▒ ░░░▒░ ░ ░     ░     ▒ ░▒░ ░
+░ ░  ░    ░    ░   ▒    ░░░ ░ ░   ░       ░  ░░ ░
+░       ░  ░     ░  ░   ░               ░  ░  ░
+░
 
- ▄▄▄     ▄▄▄█████▓▄▄▄█████▓ ▄▄▄       ▄████▄   ██ ▄█▀
- ▒████▄   ▓  ██▒ ▓▒▓  ██▒ ▓▒▒████▄    ▒██▀ ▀█   ██▄█▒ 
- ▒██  ▀█▄ ▒ ▓██░ ▒░▒ ▓██░ ▒░▒██  ▀█▄  ▒▓█    ▄ ▓███▄░ 
- ░██▄▄▄▄██░ ▓██▓ ░ ░ ▓██▓ ░ ░██▄▄▄▄██ ▒▓▓▄ ▄██▒▓██ █▄ 
-  ▓█   ▓██▒ ▒██▒ ░   ▒██▒ ░  ▓█   ▓██▒▒ ▓███▀ ░▒██▒ █▄
-  ▒▒   ▓▒█░ ▒ ░░     ▒ ░░    ▒▒   ▓▒█░░ ░▒ ▒  ░▒ ▒▒ ▓▒
-   ▒   ▒▒ ░   ░        ░      ▒   ▒▒ ░  ░  ▒   ░ ░▒ ▒░
-   ░   ▒    ░        ░        ░   ▒   ░        ░ ░░ ░ 
-       ░  ░                       ░  ░░ ░      ░  ░   
-                                      ░               
+▄▄▄     ▄▄▄█████▓▄▄▄█████▓ ▄▄▄       ▄████▄   ██ ▄█▀
+▒████▄   ▓  ██▒ ▓▒▓  ██▒ ▓▒▒████▄    ▒██▀ ▀█   ██▄█▒
+▒██  ▀█▄ ▒ ▓██░ ▒░▒ ▓██░ ▒░▒██  ▀█▄  ▒▓█    ▄ ▓███▄░
+░██▄▄▄▄██░ ▓██▓ ░ ░ ▓██▓ ░ ░██▄▄▄▄██ ▒▓▓▄ ▄██▒▓██ █▄
+▓█   ▓██▒ ▒██▒ ░   ▒██▒ ░  ▓█   ▓██▒▒ ▓███▀ ░▒██▒ █▄
+▒▒   ▓▒█░ ▒ ░░     ▒ ░░    ▒▒   ▓▒█░░ ░▒ ▒  ░▒ ▒▒ ▓▒
+▒   ▒▒ ░   ░        ░      ▒   ▒▒ ░  ░  ▒   ░ ░▒ ▒░
+░   ▒    ░        ░        ░   ▒   ░        ░ ░░ ░
+░  ░                       ░  ░░ ░      ░  ░
+░
 
 "
 echo "[DeAuthAttack] BEGIN"
@@ -268,5 +262,4 @@ kill $!
 wait $! 2>/dev/null
 
 echo -e "\n[DeAuthAttack] FINISHED"
-
 reset_net_config
