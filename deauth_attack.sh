@@ -3,19 +3,31 @@
 # contributors: mel, kd, cr0d, rck, vm, ...
 
 # --- TO DO ---
+#01 - Inserir menu de opções e parâmetros, para corrigir parcialmente todos os bugs - funcionalidade 2C
+#02 - Corrigir completamente o bug 1D
+#03 - Corrigir completamente o bug 1B
+#04 - Corrigir completamente o bug 1C
+#05 - Corrigir completamente o bug 1A
+#06 - Corrigir completamente os bugs 1F e 1E e funcionalidade 2B - Criar outro script para detecção de redes. Tentar usar o do wifite
+#07 - Criar um instalador para linux (2A)- Instala todas as dependências, move os arquivos para /bin/ (executa em qualquer lugar) & auto update (pelo software) & corrigir o FOR que monta o comando de instalação.
 
-#-------
-# Testar se o usuário tem uma ou mais interfaces de rede
-# Caso sim, mostrar resultados das duas redes
-#-------
-# Criar instalador para o linux
-#-------
-# Modificar instalador de acordo com a distro
-#-------
-# Testar primeiro se a placa de rede permite modo monitor
-#-------
-# Traduzir novos fragmentos para inglês
-#-------
+# - BUGS:
+# 1A- Detecta interface de rede errada
+# 1B- Detecta duas interfaces de rede na mesma string ao ter adaptador plugado
+# 1C- Não avisa o usuário se a interface de rede não suporta o modo monitor
+# 1D- Ataca a rede com o canal errado
+# 1E- Algumas redes aparecem com o nome incompleto
+# 1F- As vezes o scanner não detecta todas as redes
+
+# - Novas funcionalidades:
+# 2A- Criar instalador para o linux
+# 2B- Permitir que o scan de redes dure mais ou menos tempo, e permitir o reescan de redes
+# 2C- Criar um menu de parâmetros
+
+
+
+
+#=== MAIS INFORMAÇÕES ===
 # Capturar o nome das redes wireless do arquivo temporário e passar para um array
 #Dar um echo neste array, mostrando o número da posição do array +1 e o nome da rede, no seguinte formato
 #1;Rede 01
@@ -30,9 +42,6 @@
 #3;Rede Wireless
 #Pressione 0 para reescanear as redes wireless
 #-------
-# Tentar descobrir qual o erro que mostra o nome de algumas redes com nomes repetidos & outras com nome pela metade
-#-------
-
 # ==== PERFUMARIAS DESNECESSÁRIAS :) ====
 # Criar um parser para as redes wireless, para mostrá-las neste formato
 #   +----+---------------+
