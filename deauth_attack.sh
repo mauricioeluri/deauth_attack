@@ -3,7 +3,6 @@
 # contributors: mel, kd, cr0d, rck, vm, ...
 
 # --- TO DO ---
-# - Inserir no menu de parametros a opção kill
 # - Corrigir completamente o bug 1D
 # - Corrigir completamente o bug 1G
 # - Corrigir completamente o bug 1B
@@ -59,6 +58,7 @@ usage()
     echo -e "\nUsage: sudo bash ./deauth_attack.sh <args>"
     echo -e "\nOptional Arguments:"
     echo "-i \"<name>\"       : The wireless interface which will be used"
+    echo "-k                : Kill the processes that can cause conflicts with the attack"
     echo "-n \"<name>\"       : The network name which the attack will be performed"
     #    echo "-s <y,n>          : Don't show the DeAuth messages when performing the attack [Default:n]"
     echo "-h                : Show this help message"
@@ -114,6 +114,8 @@ fi
 INTERFACE=`iwconfig 2> /dev/null | grep 'IEEE 802.11' | awk '{print $1}'`
 # tmp file
 TMP_FILE=$(mktemp)
+# keep control if the user wants to kill conflicting processes 
+KILL=0
 
 # stop airmon-ng and start WiFi interface in normal mode
 reset_net_config()
@@ -231,10 +233,12 @@ sleep 3
 
 echo "[DeAuthAttack] BEGIN"
 
-while getopts "i:n:h" opt; do
+while getopts "i:kn:h" opt; do
     case "$opt" in
         i)
             INTERFACE=$OPTARG ;;
+        k)
+            KILL=1 ;;
         n)
             NETWORK=$OPTARG ;;
         h)
@@ -271,7 +275,12 @@ echo "Network channel: $CHANNEL"
 
 echo -n "Starting attack tools ... "
 airmon-ng start $INTERFACE 1> /dev/null
-airmon-ng check kill 1> /dev/null
+
+#Mata os processos conflitantes, se o usuário passou k como parâmetro.
+if [ $KILL == 1 ]
+then
+    airmon-ng check kill 1> /dev/null
+fi
 echo "done."
 
 echo -n "Changing the WiFi network channel ... "
