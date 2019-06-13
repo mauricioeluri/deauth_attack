@@ -5,6 +5,9 @@
 # --- TO DO ---
 
 #-------
+# Testar se o usuário tem uma ou mais interfaces de rede
+# Caso sim, mostrar resultados das duas redes
+#-------
 # Criar instalador para o linux
 #-------
 # Modificar instalador de acordo com a distro
