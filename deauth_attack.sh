@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# contributors: mel, cr0d, rck, kd, vm, ...
+# contributors: mel, kd, cr0d, rck, vm, ...
 
 # --- TO DO ---
 
@@ -56,12 +56,14 @@ usage()
 }
 
 [ "$EUID" -eq 0 ] || { 
-usage
-echo "NOTE: most of the commands need \"root\"";
-exit;
+    usage
+    echo "";
+    echo "[NOTICE] most of the commands need \"root\"";
+    echo "";
+    exit;
 }
 
-to_install="sudo apt-get install "
+APT_INSTALL="sudo apt-get -y install "
 ERRO=0
 
 for CMD in route airmon-ng mktemp iwlist iwconfig wash getopt pkill
@@ -72,16 +74,16 @@ do
         #ALGUNS PACOTES SÃO SUBPACOTES DE PACOTES MAIORES
         case "$CMD" in
             "airmon-ng")
-                to_install+="aircrack-ng "
+                APT_INSTALL+="aircrack-ng "
                 ;;
             "route")
-                to_install+="net-tools "
+                APT_INSTALL+="net-tools "
                 ;;
             "wash")
-                to_install+="reaver "
+                APT_INSTALL+="reaver "
                 ;;
             *)
-                to_install+=$CMD" "
+                APT_INSTALL+=$CMD" "
                 ;;
         esac
         ERRO=1
@@ -91,9 +93,11 @@ done
 # CASO ERRO, MONTA A STRING DE INSTALAÇÃO E MOSTRA PARA O USUÁRIO
 if [ $ERRO == 1 ]
 then
+    echo ""
     echo "[ERROR] Missing commands/apps. Install them first."
-    to_install+="-y"
-    echo $to_install
+    echo ""
+    echo "shell$ $APT_INSTALL"
+    echo ""
     exit
 fi
 
@@ -160,18 +164,18 @@ choose_network()
 verify_network()
 {
     echo -n "Verifying network ... "
-    REDE_VALIDA=0
+    NETWORK_IS_UP=0
     IFS=";"
     while read f1 f2
     do
         temp="${f1//\"}"
         if [ "$temp" == "$NETWORK" ]
         then
-            REDE_VALIDA=1 
+            NETWORK_IS_UP=1 
             break
         fi
     done < $TMP_FILE
-    echo "Done."
+    echo "done."
 }
 
 echo "
@@ -199,23 +203,18 @@ echo "
 ░
 
 "
+
+sleep 3
+
 echo "[DeAuthAttack] BEGIN"
 
-while getopts "n:h:k" opt; do
+while getopts "n:h" opt; do
     case "$opt" in
         n)
             NETWORK=$OPTARG ;;
         h)
             usage 
             exit ;;
-        k)
-            if [ ! `which mplayer` ]
-            then
-                echo "Needs mplayer for playing keygen music. Please install it."
-            else
-                mplayer -loop 0 -noconsolecontrols -really-quiet 2>/dev/null keygen.mp3 &
-            fi
-            ;;
     esac
 done
 check_promiscuous_mode
@@ -230,9 +229,11 @@ fi
 
 #Verifica se a rede inserida está no arquivo temporário
 verify_network
-if [ $REDE_VALIDA == 0 ]
+if [ $NETWORK_IS_UP -eq 0 ]
 then
+    echo ""
     echo "[ERROR] Network not found."
+    echo ""
     exit
 fi
 
