@@ -3,13 +3,14 @@
 # contributors: mel, kd, cr0d, rck, vm, ...
 
 # --- TO DO ---
-#01 - Inserir menu de opções e parâmetros, para corrigir parcialmente todos os bugs - funcionalidade 2C
-#02 - Corrigir completamente o bug 1D
-#03 - Corrigir completamente o bug 1B
-#04 - Corrigir completamente o bug 1C
-#05 - Corrigir completamente o bug 1A
-#06 - Corrigir completamente os bugs 1F e 1E e funcionalidade 2B - Criar outro script para detecção de redes. Tentar usar o do wifite
-#07 - Criar um instalador para linux (2A)- Instala todas as dependências, move os arquivos para /bin/ (executa em qualquer lugar) & auto update (pelo software) & corrigir o FOR que monta o comando de instalação.
+# - Inserir no menu de parametros a opção kill
+# - Corrigir completamente o bug 1D
+# - Corrigir completamente o bug 1G
+# - Corrigir completamente o bug 1B
+# - Corrigir completamente o bug 1C
+# - Corrigir completamente o bug 1A
+# - Corrigir completamente os bugs 1F e 1E e funcionalidade 2B - Criar outro script para detecção de redes. Tentar usar o do wifite
+# - Criar um instalador para linux (2A)- Instala todas as dependências, move os arquivos para /bin/ (executa em qualquer lugar) & auto update (pelo software) & corrigir o FOR que monta o comando de instalação.
 
 # - BUGS:
 # 1A- Detecta interface de rede errada
@@ -18,13 +19,11 @@
 # 1D- Ataca a rede com o canal errado
 # 1E- Algumas redes aparecem com o nome incompleto
 # 1F- As vezes o scanner não detecta todas as redes
+# 1G- Setar nome fixo para a interface em modo monitor
 
 # - Novas funcionalidades:
 # 2A- Criar instalador para o linux
 # 2B- Permitir que o scan de redes dure mais ou menos tempo, e permitir o reescan de redes
-# 2C- Criar um menu de parâmetros
-
-
 
 
 #=== MAIS INFORMAÇÕES ===
@@ -59,6 +58,7 @@ usage()
 {
     echo -e "\nUsage: sudo bash ./deauth_attack.sh <args>"
     echo -e "\nOptional Arguments:"
+    echo "-i \"<name>\"       : The wireless interface which will be used"
     echo "-n \"<name>\"       : The network name which the attack will be performed"
     #    echo "-s <y,n>          : Don't show the DeAuth messages when performing the attack [Default:n]"
     echo "-h                : Show this help message"
@@ -187,6 +187,19 @@ verify_network()
     echo "done."
 }
 
+#Testa se a interface de rede é válida
+verify_interface()
+{
+    echo -n "Verifying interface ... "
+    if sudo ifconfig | grep $INTERFACE > /dev/null ; then
+        echo "done."
+    else
+        echo ""
+        echo "[ERROR] Interface not found."
+        exit
+    fi
+}
+
 echo "
 
 ▓█████▄ ▓█████ ▄▄▄       █    ██ ▄▄▄█████▓ ██░ ██
@@ -213,12 +226,15 @@ echo "
 
 "
 
+
 sleep 3
 
 echo "[DeAuthAttack] BEGIN"
 
-while getopts "n:h" opt; do
+while getopts "i:n:h" opt; do
     case "$opt" in
+        i)
+            INTERFACE=$OPTARG ;;
         n)
             NETWORK=$OPTARG ;;
         h)
@@ -226,6 +242,9 @@ while getopts "n:h" opt; do
             exit ;;
     esac
 done
+
+verify_interface
+
 check_promiscuous_mode
 scan_networks
 
